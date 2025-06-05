@@ -1,33 +1,46 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'fastapi-dolarapi'
+    }
+
     stages {
-        stage('Limpiar contenedor e imagen') {
+        stage('Limpiar contenedores e imágenes anteriores') {
             steps {
-                sh '''
-                    docker stop fastapi-dolarapi || true
-                    docker rm fastapi-dolarapi || true
-                    docker rmi fastapi-dolarapi || true
-                '''
+                script {
+                    sh '''
+                    # Parar y eliminar contenedor si existe
+                    if [ "$(docker ps -q -f name=${IMAGE_NAME})" ]; then
+                      docker stop ${IMAGE_NAME}
+                      docker rm ${IMAGE_NAME}
+                    fi
+
+                    # Eliminar imagen si existe
+                    if [ "$(docker images -q ${IMAGE_NAME})" ]; then
+                      docker rmi -f ${IMAGE_NAME}
+                    fi
+                    '''
+                }
             }
         }
 
-        stage('Clonar repositorio') {
+        stage('Construir imagen Docker') {
             steps {
-                git branch: 'main', url: 'https://github.com/okee-arch/Evaluacion-N2-DRY7122.git'
+                sh 'docker build -t ${IMAGE_NAME} .'
             }
         }
 
-        stage('Construir imagen') {
+        stage('Levantar contenedor') {
             steps {
-                sh 'docker build -t fastapi-dolarapi .'
+                sh 'docker run -d -p 8000:8000 --name ${IMAGE_NAME} ${IMAGE_NAME}'
             }
         }
+    }
 
-        stage('Ejecutar contenedor') {
-            steps {
-                sh 'docker run -d --name fastapi-dolarapi -p 8000:8000 fastapi-dolarapi'
-            }
+    post {
+        always {
+            echo "Pipeline finalizado"
         }
     }
 }
