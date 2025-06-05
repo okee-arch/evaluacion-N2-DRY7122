@@ -14,7 +14,7 @@ pipeline {
 
         stage('Clonar repositorio') {
             steps {
-                git 'https://github.com/okee-arch/Evaluacion-N2-DRY7122.git'
+                git branch: 'main', url: 'https://github.com/okee-arch/Evaluacion-N2-DRY7122.git'
             }
         }
 
