@@ -10,16 +10,11 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    # Parar y eliminar contenedor si existe
-                    if [ "$(docker ps -q -f name=${IMAGE_NAME})" ]; then
-                      docker stop ${IMAGE_NAME}
-                      docker rm ${IMAGE_NAME}
-                    fi
+                    # Eliminar contenedor si existe (activo o detenido)
+                    docker ps -aq -f name=${IMAGE_NAME} | xargs -r docker rm -f
 
                     # Eliminar imagen si existe
-                    if [ "$(docker images -q ${IMAGE_NAME})" ]; then
-                      docker rmi -f ${IMAGE_NAME}
-                    fi
+                    docker images -q ${IMAGE_NAME} | xargs -r docker rmi -f
                     '''
                 }
             }
